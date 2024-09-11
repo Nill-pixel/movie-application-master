@@ -25,12 +25,6 @@
       "rating": "9.4"
     },
     {
-      "id": 5,
-      "movieName": "Gravity",
-      "director": "Alfonso Cuarón",
-      "rating": "9.6"
-    },
-    {
       "movieName": "Shawshank Redemption",
       "director": "Franklin",
       "rating": "9.4",
@@ -41,6 +35,21 @@
       "director": "Franklin",
       "rating": "10",
       "id": 7
+    },
+    {
+      "movieName": "Moonrise Kingdom",
+      "director": "Wes Anderson",
+      "rating": "9.898",
+      "id": 8
+    },
+    {
+      "movieName": "Moonrise Kingdom",
+      "director": "Wes Anderson",
+      "id": 9
+    },
+    {
+      "movieName": "Moonrise Kingdom",
+      "id": 10
     }
   ]
 }

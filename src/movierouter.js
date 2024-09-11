@@ -1,9 +1,23 @@
 const express = require('express')
 const router = express.Router()
 const movieController = require('./moviecontroller');
-const { C } = require('sinon/lib/sinon/spy-formatters.js');
-//import all the modules required 
+const axios = require('axios')
 
+//import all the modules required 
+const sendLog = async (level, message, details) => {
+  const log = {
+    level: level,
+    message: message,
+    details: details
+  }
+
+  try {
+    await axios.post('http://localhost:8000/logs', log)
+    console.log('Log send successfuly')
+  } catch (err) {
+    console.error('Falha ao enviar log', err)
+  }
+}
 /**
  * API to get the details of all movies
  * EFFECTIVE URL: GET /api/v1/movies
@@ -12,15 +26,23 @@ router.get("/", (req, res) => {
   try {
     //calling controller method and passing the parameters 
     //return the response as per error or result coming from controller
-    movieController.getMovies((err, results) => {
-      if (err) {
-        res.status(400).send(err)
-      }
-      res.status(200).send({ STATUS: "OK", data: results })
+    try {
+      movieController.getMovies((err, results) => {
+        if (err) {
+          sendLog('ERROR', 'Error get movies', { error: err });
+          return res.status(400).send(err)
+        }
+        sendLog('INFO', 'Get movies successfuly', { results })
+        return res.status(200).send({ STATUS: "OK", data: results })
 
-    })
+      })
+    } catch (err) {
+      sendLog('WARNING', 'Controller error', { error: err });
+      return res.status(500).send("Unexpected error occurred in controller.");
+    }
   } catch (err) {
-    res.status(500).send("Unexpected error. Try after some time")
+    sendLog('WARNING', 'Unexpected error', { error: err });
+    return res.status(500).send("Unexpected error. Try after some time")
   }
 });
 /**
@@ -30,22 +52,27 @@ router.get("/", (req, res) => {
 //
 router.get("/:movieId", (req, res) => {
   try {
-    //retreive moviedId from req.params
-    const movieId = req.params.movieId
+    const movieId = req.params.movieId;
 
-    //calling controller method and passing the parameters 
-    //return the response as per error or result coming from controller
-    movieController.getMovieById(movieId, (err, results) => {
-      if (err) {
-        res.status(400).send(err)
-      }
-      return res.status(200).send({ STATUS: "OK", data: results })
-    });
-
+    try {
+      movieController.getMovieById(movieId, (err, results) => {
+        if (err) {
+          sendLog('ERROR', 'Error get by movies', { error: err });
+          return res.status(400).send(err);
+        }
+        sendLog('INFO', `movie with ID ${movieId} find with success`, { results })
+        return res.status(200).send({ STATUS: "OK", data: results });
+      });
+    } catch (err) {
+      sendLog('WARNING', 'Controller error', { error: err });
+      return res.status(500).send("Unexpected error occurred in controller.");
+    }
   } catch (err) {
-    res.status(500).send("Unexpected error. Try after some time")
+    sendLog('WARNING', 'Unexpected error', { error: err });
+    return res.status(500).send("Unexpected error. Try after some time");
   }
 });
+
 
 /**
  * API to save new movie
@@ -57,15 +84,22 @@ router.post("/", (req, res) => {
     const movieDetails = req.body
     //calling controller method and passing the parameters 
     //return the response as per error or result coming from controller
-    movieController.saveMovieDetails(movieDetails, (err, results) => {
-      if (err) {
-        res.status(400).send(err)
-      }
-      return res.status(200).send({ STATUS: "OK", data: results })
-    });
-
+    try {
+      movieController.saveMovieDetails(movieDetails, (err, results) => {
+        if (err) {
+          sendLog('ERROR', `Error while saving movie`, { error: err.message })
+          res.status(400).send(err)
+        }
+        sendLog('INFO', `movie saved with success`, { movieDetails })
+        return res.status(200).send({ STATUS: "OK", data: results })
+      });
+    } catch (err) {
+      sendLog('WARNING', 'Controller error', { error: err });
+      return res.status(500).send("Unexpected error occurred in controller.");
+    }
   } catch (err) {
-    res.status(500).send("Unexpected error. Try after some time")
+    sendLog('WARNING', 'Error while saving movie', { error: err.message })
+    return res.status(500).send("Unexpected error. Try after some time")
   }
 });
 
@@ -81,15 +115,22 @@ router.patch("/:movieId", (req, res) => {
     const movieDetails = req.body
     //calling controller method and passing the parameters 
     //return the response as per error or result coming from controller
-    movieController.updateMovieDetails(movieId, movieDetails, (err, results) => {
-      if (err) {
-        res.status(400).send(err)
-      }
-      return res.status(200).send({ STATUS: "OK", data: results })
-    });
-
+    try {
+      movieController.updateMovieDetails(movieId, movieDetails, (err, results) => {
+        if (err) {
+          sendLog('ERROR', 'Error saving movie', { error: err.message });
+          return res.status(400).send(err)
+        }
+        sendLog('INFO', 'movie updated successfuly', { results });
+        return res.status(200).send({ STATUS: "OK", data: results })
+      });
+    } catch (err) {
+      sendLog('WARNING', 'Controller error', { error: err });
+      return res.status(500).send("Unexpected error occurred in controller.");
+    }
   } catch (err) {
-    res.status(500).send("Unexpected error. Try after some time")
+    sendLog('WARNING', 'Error saving movie', { error: err.message });
+    return res.status(500).send("Unexpected error. Try after some time")
   }
 });
 
@@ -103,14 +144,22 @@ router.delete("/:movieId", (req, res) => {
     const movieId = req.params.movieId
     //calling controller method and passing the parameters 
     //return the response as per error or result coming from controller
-    movieController.deleteMovieById(movieId, (err, results) => {
-      if (err) {
-        res.status(400).send(err)
-      }
-      return res.status(200).send({ STATUS: "OK", data: results })
-    })
+    try {
+      movieController.deleteMovieById(movieId, (err, results) => {
+        if (err) {
+          sendLog('ERROR', 'Error deleting movie', { error: err.message });
+          return res.status(400).send(err)
+        }
+        sendLog('INFO', `movie with ID ${movieId} deleted with success`, { results })
+        return res.status(200).send({ STATUS: "OK", data: results })
+      })
+    } catch (err) {
+      sendLog('WARNING', 'Controller error', { error: err });
+      return res.status(500).send("Unexpected error occurred in controller.");
+    }
   } catch (err) {
-    res.status(500).send("Unexpected error. Try after some time")
+    sendLog('WARNING', 'Error deleting movie', { error: err.message });
+    return res.status(500).send("Unexpected error. Try after some time")
   }
 });
 
