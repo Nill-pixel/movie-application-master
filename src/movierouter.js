@@ -57,7 +57,7 @@ router.get("/:movieId", (req, res) => {
     try {
       movieController.getMovieById(movieId, (err, results) => {
         if (err) {
-          sendLog('ERROR', 'Error get by movies', { error: err });
+          sendLog('ERROR', 'Error get movies by id', { error: err });
           return res.status(400).send(err);
         }
         sendLog('INFO', `movie with ID ${movieId} find with success`, { results })
